@@ -1,4 +1,6 @@
 package com.himanshuProjects.disaster_damage_assessment_portal.enums;
 
 public enum NotificationChannel {
+    IN_APP,
+    EMAIL
 }
