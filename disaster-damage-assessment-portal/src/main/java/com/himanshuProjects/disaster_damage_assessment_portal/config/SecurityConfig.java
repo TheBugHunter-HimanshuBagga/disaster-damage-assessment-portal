@@ -3,19 +3,20 @@ package com.himanshuProjects.disaster_damage_assessment_portal.config;
 import com.himanshuProjects.disaster_damage_assessment_portal.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -27,33 +28,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF — REST APIs are stateless and token-based
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Stateless session — no server-side session, each request carries its own auth
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // Define authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints — no authentication required
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // Swagger/OpenAPI endpoints (for later)
+                        // Swagger/OpenAPI endpoints
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // User profile — any authenticated user can access their own profile
+                        .requestMatchers(HttpMethod.GET, "/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/change-password").authenticated()
+
+                        // User search — admin and officers only
+                        .requestMatchers(HttpMethod.GET, "/api/users/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+
+                        // User by ID — admin and officers only
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
 
-                // Disable form login — we use JWT, not browser-based login
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                // Disable HTTP Basic — we use JWT, not Basic auth
                 .httpBasic(AbstractHttpConfigurer::disable)
 
-                // Register JWT filter before Spring's default authentication filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

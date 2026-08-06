@@ -7,12 +7,15 @@ import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.Distri
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.AccountStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
+import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
 import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.DistrictRepository;
 import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.UserRepository;
 import com.himanshuProjects.disaster_damage_assessment_portal.security.CustomUserDetailsService;
 import com.himanshuProjects.disaster_damage_assessment_portal.security.JwtService;
+import com.himanshuProjects.disaster_damage_assessment_portal.service.EmailService;
+import com.himanshuProjects.disaster_damage_assessment_portal.service.OtpService;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.auth.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +23,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -32,60 +36,62 @@ public class AuthServiceImpl implements AuthService {
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final OtpService otpService;
+    private final EmailService emailService;
 
     public AuthServiceImpl(UserRepository userRepository,
                            DistrictRepository districtRepository,
                            PasswordEncoder passwordEncoder,
                            ModelMapper modelMapper,
                            JwtService jwtService,
-                           CustomUserDetailsService customUserDetailsService) {
+                           CustomUserDetailsService customUserDetailsService,
+                           OtpService otpService,
+                           EmailService emailService) {
         this.userRepository = userRepository;
         this.districtRepository = districtRepository;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
         this.jwtService = jwtService;
         this.customUserDetailsService = customUserDetailsService;
+        this.otpService = otpService;
+        this.emailService = emailService;
     }
 
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         log.info("Registration attempt for email: {}", request.getEmail());
 
-        // 1. Check email uniqueness
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("Email is already registered: " + request.getEmail());
         }
 
-        // 2. Check phone uniqueness
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new ConflictException("Phone number is already registered: " + request.getPhoneNumber());
         }
 
-        // 3. Validate district exists
         District district = districtRepository.findById(request.getDistrictId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "District", "id", request.getDistrictId()));
 
-        // 4. Map DTO to entity
         User user = modelMapper.map(request, User.class);
 
-        // 5. Set server-managed fields
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(RoleType.CITIZEN);
         user.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         user.setDistrict(district);
 
-        // 6. Persist
         User savedUser = userRepository.save(user);
         log.info("User registered successfully with ID: {}", savedUser.getId());
 
-        // 7. Generate JWT token
+        // Send OTP email for verification
+        otpService.generateAndSendOtp(savedUser.getEmail(), savedUser.getFullName());
+
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(savedUser.getEmail());
         String jwtToken = jwtService.generateToken(userDetails);
 
-        // 8. Build and return response
         AuthResponse response = modelMapper.map(savedUser, AuthResponse.class);
-        response.setMessage("Registration successful. Please verify your email.");
+        response.setMessage("Registration successful. Please verify your email using the OTP sent to your inbox.");
         response.setToken(jwtToken);
 
         return response;
@@ -95,26 +101,53 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
 
-        // 1. Find user by email
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "User", "email", request.getEmail()));
 
-        // 2. Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new ConflictException("Invalid email or password");
         }
 
-        // 3. Generate JWT token
+        // Block login if account is not yet verified
+        if (user.getAccountStatus() != AccountStatus.ACTIVE) {
+            log.warn("Login blocked for unverified account: {}", user.getEmail());
+            throw new BadRequestException(
+                    "Account is not verified. Please verify your email using the OTP first."
+            );
+        }
+
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
         String jwtToken = jwtService.generateToken(userDetails);
 
-        // 4. Build and return response
         AuthResponse response = modelMapper.map(user, AuthResponse.class);
         response.setMessage("Login successful");
         response.setToken(jwtToken);
 
         log.info("User logged in successfully: {}", user.getEmail());
         return response;
+    }
+
+    @Override
+    @Transactional
+    public void activateAccount(String email) {
+        log.info("Activating account for email: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User", "email", email));
+
+        if (user.getAccountStatus() == AccountStatus.ACTIVE) {
+            log.info("Account already active for email: {}", email);
+            return;
+        }
+
+        user.setAccountStatus(AccountStatus.ACTIVE);
+        userRepository.save(user);
+
+        // Send welcome email
+        emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
+
+        log.info("Account activated successfully for email: {}", email);
     }
 }
