@@ -71,6 +71,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/districts/{id}").hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/districts/{id}").hasRole("SUPER_ADMIN")
 
+                        // Disaster reports — citizen creates, admin/officer manage
+                        .requestMatchers(HttpMethod.POST, "/api/reports").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.GET, "/api/reports/my").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.GET, "/api/reports/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/reports/{id}").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/reports/{id}").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reports/{id}").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/reports/{id}/status").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.POST, "/api/reports/{id}/images").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reports/{reportId}/images/{imageId}").hasRole("CITIZEN")
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
