@@ -82,6 +82,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/reports/{id}/images").hasRole("CITIZEN")
                         .requestMatchers(HttpMethod.DELETE, "/api/reports/{reportId}/images/{imageId}").hasRole("CITIZEN")
 
+                        // Officer assignments — admin assigns, officer updates own
+                        .requestMatchers(HttpMethod.POST, "/api/assignments/report/{reportId}").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/assignments/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/assignments/my").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/assignments/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/assignments/report/{reportId}").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/assignments/{id}/status").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.POST, "/api/assignments/{id}/reassign").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
