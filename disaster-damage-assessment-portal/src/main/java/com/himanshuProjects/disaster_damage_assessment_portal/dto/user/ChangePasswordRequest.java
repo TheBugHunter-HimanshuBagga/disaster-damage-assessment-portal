@@ -15,4 +15,7 @@ public class ChangePasswordRequest {
     @NotBlank(message = "New password is required")
     @Size(min = 8, max = 255, message = "Password must be between 8 to 255 characters")
     private String newPassword;
+
+    @NotBlank(message = "Password confirmation is required")
+    private String confirmPassword;
 }

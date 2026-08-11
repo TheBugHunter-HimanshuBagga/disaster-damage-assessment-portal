@@ -46,11 +46,30 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/users/change-password").authenticated()
 
+                        // Citizen profile — any authenticated user
+                        .requestMatchers(HttpMethod.GET, "/api/users/citizen/profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/citizen/profile").authenticated()
+
                         // User search — admin and officers only
                         .requestMatchers(HttpMethod.GET, "/api/users/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
 
                         // User by ID — admin and officers only
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+
+                        // Account status management — admin only
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/{id}/account-status").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+
+                        // State management — SUPER_ADMIN only (write), all authenticated (read)
+                        .requestMatchers(HttpMethod.GET, "/api/states/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/states").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/states/{id}").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/states/{id}").hasRole("SUPER_ADMIN")
+
+                        // District management — SUPER_ADMIN only (write), all authenticated (read)
+                        .requestMatchers(HttpMethod.GET, "/api/districts/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/districts").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/districts/{id}").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/districts/{id}").hasRole("SUPER_ADMIN")
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

@@ -1,6 +1,9 @@
 package com.himanshuProjects.disaster_damage_assessment_portal.controller.user;
 
+import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.CitizenProfileResponse;
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.ChangePasswordRequest;
+import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.UpdateAccountStatusRequest;
+import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.UpdateCitizenProfileRequest;
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.UpdateProfileRequest;
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.UserPageResponse;
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.user.UserResponse;
@@ -76,6 +79,30 @@ public class UserController {
         UserPageResponse response = userService.searchUsers(
                 search, role, status, districtId,
                 page, size, sortBy, sortDirection);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/citizen/profile")
+    public ResponseEntity<CitizenProfileResponse> getCitizenProfile(Authentication authentication) {
+        String email = authentication.getName();
+        CitizenProfileResponse response = userService.getCitizenProfile(email);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/citizen/profile")
+    public ResponseEntity<CitizenProfileResponse> updateCitizenProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateCitizenProfileRequest request) {
+        String email = authentication.getName();
+        CitizenProfileResponse response = userService.updateCitizenProfile(email, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/account-status")
+    public ResponseEntity<UserResponse> updateUserAccountStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateAccountStatusRequest request) {
+        UserResponse response = userService.updateUserAccountStatus(id, request);
         return ResponseEntity.ok(response);
     }
 }
