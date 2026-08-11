@@ -91,6 +91,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/assignments/{id}/status").hasRole("FIELD_OFFICER")
                         .requestMatchers(HttpMethod.POST, "/api/assignments/{id}/reassign").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
 
+                        // Damage assessments — officer submits, admin views all
+                        .requestMatchers(HttpMethod.POST, "/api/assessments/report/{reportId}").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/assessments/my").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/assessments/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/assessments/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/assessments/report/{reportId}").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/assessments/{id}").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/assessments/{id}").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.POST, "/api/assessments/{id}/images").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/assessments/{assessmentId}/images/{imageId}").hasRole("FIELD_OFFICER")
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
