@@ -10,10 +10,28 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface DisasterReportRepository extends JpaRepository<DisasterReport, Long> {
 
     Page<DisasterReport> findByCitizenIdOrderByCreatedAtDesc(Long citizenId, Pageable pageable);
+
+    long countByStatus(ReportStatus status);
+
+    long countByCitizenId(Long citizenId);
+
+    long countByCitizenIdAndStatus(Long citizenId, ReportStatus status);
+
+    @Query("SELECT r.status as status, COUNT(r) as count FROM DisasterReport r GROUP BY r.status")
+    List<Object[]> countGroupByStatus();
+
+    @Query("SELECT FUNCTION('YEAR', r.createdAt) as year, FUNCTION('MONTH', r.createdAt) as month, COUNT(r) as count " +
+            "FROM DisasterReport r " +
+            "WHERE r.createdAt >= :startDate " +
+            "GROUP BY FUNCTION('YEAR', r.createdAt), FUNCTION('MONTH', r.createdAt) " +
+            "ORDER BY year ASC, month ASC")
+    List<Object[]> countMonthlyReports(@Param("startDate") java.time.LocalDateTime startDate);
 
     @Query("SELECT r FROM DisasterReport r WHERE " +
             "(:search IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) " +

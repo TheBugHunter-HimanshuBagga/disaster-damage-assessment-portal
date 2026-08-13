@@ -129,6 +129,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/feedbacks/report/{reportId}").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/feedbacks/{id}").hasRole("CITIZEN")
 
+                        // Dashboard — role-based access
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/admin").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/officer").hasRole("FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/citizen").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard").authenticated()
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )

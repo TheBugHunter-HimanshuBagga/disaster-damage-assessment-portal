@@ -27,6 +27,17 @@ public interface OfficerAssignmentRepository extends JpaRepository<OfficerAssign
 
     long countByFieldOfficerIdAndAssignmentStatus(Long officerId, AssignmentStatus status);
 
+    long countByFieldOfficerId(Long officerId);
+
+    @Query("SELECT a.fieldOfficer.id as officerId, a.fieldOfficer.fullName as name, " +
+            "a.fieldOfficer.email as email, " +
+            "SUM(CASE WHEN a.assignmentStatus IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS') THEN 1 ELSE 0 END) as active, " +
+            "SUM(CASE WHEN a.assignmentStatus = 'COMPLETED' THEN 1 ELSE 0 END) as completed, " +
+            "COUNT(a) as total " +
+            "FROM OfficerAssignment a " +
+            "GROUP BY a.fieldOfficer.id, a.fieldOfficer.fullName, a.fieldOfficer.email")
+    List<Object[]> countWorkloadGroupByOfficer();
+
     @Query("SELECT a FROM OfficerAssignment a WHERE " +
             "(:search IS NULL OR LOWER(a.disasterReport.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(a.fieldOfficer.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
