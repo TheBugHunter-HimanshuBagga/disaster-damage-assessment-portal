@@ -121,6 +121,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/notifications/read-all").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/notifications/{id}").authenticated()
 
+                        // Feedback — citizen submits own, admin searches all
+                        .requestMatchers(HttpMethod.POST, "/api/feedbacks").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.GET, "/api/feedbacks/my").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.GET, "/api/feedbacks/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/feedbacks/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/feedbacks/report/{reportId}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/feedbacks/{id}").hasRole("CITIZEN")
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
