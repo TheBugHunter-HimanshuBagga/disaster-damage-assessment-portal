@@ -4,6 +4,7 @@ import com.himanshuProjects.disaster_damage_assessment_portal.common.BaseEntity;
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.disaster.DamageAssessment;
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.CompensationStatus;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.PaymentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -46,4 +47,15 @@ public class Compensation extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
     private User approvedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false, length = 20)
+    private PaymentStatus paymentStatus = PaymentStatus.NOT_INITIATED;
+
+    @Column(name = "paid_date")
+    private LocalDateTime paidDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paid_by")
+    private User paidBy;
 }

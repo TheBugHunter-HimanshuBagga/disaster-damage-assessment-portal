@@ -102,6 +102,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/assessments/{id}/images").hasRole("FIELD_OFFICER")
                         .requestMatchers(HttpMethod.DELETE, "/api/assessments/{assessmentId}/images/{imageId}").hasRole("FIELD_OFFICER")
 
+                        // Compensations — admin creates/approves/rejects, citizen views own
+                        .requestMatchers(HttpMethod.POST, "/api/compensations").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/compensations/search").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN", "FIELD_OFFICER")
+                        .requestMatchers(HttpMethod.GET, "/api/compensations/my").hasRole("CITIZEN")
+                        .requestMatchers(HttpMethod.GET, "/api/compensations/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/compensations/{id}/history").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/compensations/{id}").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/compensations/{id}/approve").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/compensations/{id}/reject").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/compensations/{id}/payment-status").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/compensations/{id}").hasRole("SUPER_ADMIN")
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
