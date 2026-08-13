@@ -10,6 +10,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.AssignmentStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
@@ -19,6 +21,7 @@ import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.Us
 import com.himanshuProjects.disaster_damage_assessment_portal.service.assignment.OfficerAssignmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,13 +50,16 @@ public class OfficerAssignmentServiceImpl implements OfficerAssignmentService {
     private final OfficerAssignmentRepository assignmentRepository;
     private final DisasterReportRepository reportRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OfficerAssignmentServiceImpl(OfficerAssignmentRepository assignmentRepository,
                                         DisasterReportRepository reportRepository,
-                                        UserRepository userRepository) {
+                                        UserRepository userRepository,
+                                        ApplicationEventPublisher eventPublisher) {
         this.assignmentRepository = assignmentRepository;
         this.reportRepository = reportRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -97,6 +103,18 @@ public class OfficerAssignmentServiceImpl implements OfficerAssignmentService {
 
         report.setStatus(ReportStatus.ASSIGNED);
         reportRepository.save(report);
+
+        eventPublisher.publishEvent(new NotificationEvent(
+                this, officer.getId(), NotificationType.OFFICER_ASSIGNED,
+                "Officer Assigned",
+                "You have been assigned to disaster report \"" + report.getTitle() + "\".",
+                savedAssignment.getId(), "OFFICER_ASSIGNMENT"));
+
+        eventPublisher.publishEvent(new NotificationEvent(
+                this, report.getCitizen().getId(), NotificationType.OFFICER_ASSIGNED,
+                "Officer Assigned",
+                "An officer has been assigned to your disaster report \"" + report.getTitle() + "\".",
+                savedAssignment.getId(), "OFFICER_ASSIGNMENT"));
 
         log.info("Officer assigned successfully. Assignment ID: {}", savedAssignment.getId());
         return mapToResponse(savedAssignment);

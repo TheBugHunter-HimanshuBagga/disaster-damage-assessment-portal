@@ -36,6 +36,13 @@ public class Notification extends BaseEntity {
     @Column( name = "is_read", nullable = false)
     private Boolean isRead = false;
 
+    @Column(name = "reference_id")
+    private Long referenceId;
+
+    @Size(max = 50, message = "Entity type cannot exceed 50 characters")
+    @Column(name = "entity_type", length = 50)
+    private String entityType;
+
     @ManyToOne(fetch = FetchType.LAZY) // Many notifications comes to a user
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

@@ -13,6 +13,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.DisasterType;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
@@ -22,6 +24,7 @@ import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.Us
 import com.himanshuProjects.disaster_damage_assessment_portal.service.disaster.DisasterReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,13 +54,16 @@ public class DisasterReportServiceImpl implements DisasterReportService {
     private final DisasterReportRepository reportRepository;
     private final ReportImageRepository reportImageRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DisasterReportServiceImpl(DisasterReportRepository reportRepository,
                                      ReportImageRepository reportImageRepository,
-                                     UserRepository userRepository) {
+                                     UserRepository userRepository,
+                                     ApplicationEventPublisher eventPublisher) {
         this.reportRepository = reportRepository;
         this.reportImageRepository = reportImageRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -92,6 +98,12 @@ public class DisasterReportServiceImpl implements DisasterReportService {
                 reportImageRepository.save(image);
             }
         }
+
+        eventPublisher.publishEvent(new NotificationEvent(
+                this, citizen.getId(), NotificationType.REPORT_SUBMITTED,
+                "Report Submitted",
+                "Your disaster report \"" + savedReport.getTitle() + "\" has been submitted successfully.",
+                savedReport.getId(), "DISASTER_REPORT"));
 
         log.info("Disaster report created: {} (ID: {})", savedReport.getTitle(), savedReport.getId());
         return mapToResponse(savedReport);

@@ -114,6 +114,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/compensations/{id}/payment-status").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/compensations/{id}").hasRole("SUPER_ADMIN")
 
+                        // Notifications — any authenticated user manages own notifications
+                        .requestMatchers(HttpMethod.GET, "/api/notifications").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/unread-count").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/notifications/{id}/read").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/notifications/read-all").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/notifications/{id}").authenticated()
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )

@@ -17,6 +17,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.enums.Compensation
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.PaymentStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
@@ -28,6 +30,7 @@ import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.Us
 import com.himanshuProjects.disaster_damage_assessment_portal.service.compensation.CompensationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,17 +57,20 @@ public class CompensationServiceImpl implements CompensationService {
     private final DamageAssessmentRepository assessmentRepository;
     private final DisasterReportRepository reportRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CompensationServiceImpl(CompensationRepository compensationRepository,
                                    CompensationStatusLogRepository statusLogRepository,
                                    DamageAssessmentRepository assessmentRepository,
                                    DisasterReportRepository reportRepository,
-                                   UserRepository userRepository) {
+                                   UserRepository userRepository,
+                                   ApplicationEventPublisher eventPublisher) {
         this.compensationRepository = compensationRepository;
         this.statusLogRepository = statusLogRepository;
         this.assessmentRepository = assessmentRepository;
         this.reportRepository = reportRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -186,6 +192,13 @@ public class CompensationServiceImpl implements CompensationService {
         logStatusChange(previousStatus, CompensationStatus.APPROVED,
                 request.getRemarks() != null ? request.getRemarks() : "Compensation approved", admin, saved);
 
+        DisasterReport report = saved.getDamageAssessment().getDisasterReport();
+        eventPublisher.publishEvent(new NotificationEvent(
+                this, report.getCitizen().getId(), NotificationType.COMPENSATION_APPROVED,
+                "Compensation Approved",
+                "Your compensation for report \"" + report.getTitle() + "\" has been approved. Amount: $" + saved.getApprovedAmount(),
+                saved.getId(), "COMPENSATION"));
+
         log.info("Compensation approved: {}", id);
         return mapToResponse(saved);
     }
@@ -222,6 +235,12 @@ public class CompensationServiceImpl implements CompensationService {
         DisasterReport report = compensation.getDamageAssessment().getDisasterReport();
         report.setStatus(ReportStatus.REJECTED);
         reportRepository.save(report);
+
+        eventPublisher.publishEvent(new NotificationEvent(
+                this, report.getCitizen().getId(), NotificationType.COMPENSATION_REJECTED,
+                "Compensation Rejected",
+                "Your compensation for report \"" + report.getTitle() + "\" has been rejected. Reason: " + request.getReason(),
+                saved.getId(), "COMPENSATION"));
 
         log.info("Compensation rejected: {}", id);
         return mapToResponse(saved);

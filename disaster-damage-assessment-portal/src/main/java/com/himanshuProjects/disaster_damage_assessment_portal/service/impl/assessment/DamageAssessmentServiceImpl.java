@@ -15,6 +15,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.enums.AssignmentSt
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.DamageLevel;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
@@ -26,6 +28,7 @@ import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.Us
 import com.himanshuProjects.disaster_damage_assessment_portal.service.assessment.DamageAssessmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -58,17 +61,20 @@ public class DamageAssessmentServiceImpl implements DamageAssessmentService {
     private final DisasterReportRepository reportRepository;
     private final OfficerAssignmentRepository assignmentRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DamageAssessmentServiceImpl(DamageAssessmentRepository assessmentRepository,
                                        InspectionImageRepository inspectionImageRepository,
                                        DisasterReportRepository reportRepository,
                                        OfficerAssignmentRepository assignmentRepository,
-                                       UserRepository userRepository) {
+                                       UserRepository userRepository,
+                                       ApplicationEventPublisher eventPublisher) {
         this.assessmentRepository = assessmentRepository;
         this.inspectionImageRepository = inspectionImageRepository;
         this.reportRepository = reportRepository;
         this.assignmentRepository = assignmentRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -140,6 +146,12 @@ public class DamageAssessmentServiceImpl implements DamageAssessmentService {
 
         report.setStatus(ReportStatus.UNDER_REVIEW);
         reportRepository.save(report);
+
+        eventPublisher.publishEvent(new NotificationEvent(
+                this, report.getCitizen().getId(), NotificationType.DAMAGE_ASSESSED,
+                "Assessment Completed",
+                "Damage assessment for your report \"" + report.getTitle() + "\" has been completed and is under review.",
+                saved.getId(), "DAMAGE_ASSESSMENT"));
 
         log.info("Assessment submitted: {} for report ID: {}", saved.getId(), reportId);
         return mapToResponse(saved);
