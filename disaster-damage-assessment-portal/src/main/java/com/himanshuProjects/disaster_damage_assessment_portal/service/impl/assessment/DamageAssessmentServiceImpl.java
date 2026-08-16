@@ -16,6 +16,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.enums.DamageLevel;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
+import com.himanshuProjects.disaster_damage_assessment_portal.aspect.Auditable;
 import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
@@ -79,6 +81,7 @@ public class DamageAssessmentServiceImpl implements DamageAssessmentService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.COMPLETE_ASSESSMENT, entityName = "DamageAssessment", description = "Damage assessment completed")
     public DamageAssessmentResponse submitAssessment(Long reportId, String officerEmail,
                                                       CreateDamageAssessmentRequest request) {
         log.info("Submitting assessment for report ID: {} by officer: {}", reportId, officerEmail);

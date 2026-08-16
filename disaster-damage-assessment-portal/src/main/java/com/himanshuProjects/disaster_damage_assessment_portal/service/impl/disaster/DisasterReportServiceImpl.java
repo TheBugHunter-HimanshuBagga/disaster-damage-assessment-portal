@@ -14,6 +14,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.enums.DisasterType
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
+import com.himanshuProjects.disaster_damage_assessment_portal.aspect.Auditable;
 import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
@@ -68,6 +70,7 @@ public class DisasterReportServiceImpl implements DisasterReportService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.CREATE_REPORT, entityName = "DisasterReport", description = "New disaster report created")
     public DisasterReportResponse createReport(String citizenEmail, CreateDisasterReportRequest request) {
         log.info("Creating disaster report for citizen: {}", citizenEmail);
 
@@ -207,6 +210,7 @@ public class DisasterReportServiceImpl implements DisasterReportService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.UPDATE_REPORT, entityName = "DisasterReport", description = "Disaster report updated")
     public DisasterReportResponse updateReport(Long id, String citizenEmail,
                                                 UpdateDisasterReportRequest request) {
         log.info("Updating report ID: {} by citizen: {}", id, citizenEmail);
@@ -256,6 +260,7 @@ public class DisasterReportServiceImpl implements DisasterReportService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.DELETE_REPORT, entityName = "DisasterReport", description = "Disaster report deleted")
     public void deleteReport(Long id, String citizenEmail) {
         log.info("Deleting report ID: {} by citizen: {}", id, citizenEmail);
 

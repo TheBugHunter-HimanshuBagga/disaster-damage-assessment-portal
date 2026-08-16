@@ -135,6 +135,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/dashboard/citizen").hasRole("CITIZEN")
                         .requestMatchers(HttpMethod.GET, "/api/dashboard").authenticated()
 
+                        // Audit logs — admin only for search, any authenticated for own logs
+                        .requestMatchers(HttpMethod.GET, "/api/audit-logs").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/audit-logs/entity/{entityName}/{entityId}").hasAnyRole("SUPER_ADMIN", "DISTRICT_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/audit-logs/my").authenticated()
+
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )

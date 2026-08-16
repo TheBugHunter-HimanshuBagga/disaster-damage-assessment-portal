@@ -11,7 +11,9 @@ import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.Citize
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.District;
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.AccountStatus;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
+import com.himanshuProjects.disaster_damage_assessment_portal.aspect.Auditable;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
@@ -71,6 +73,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.UPDATE_USER, entityName = "User", description = "User profile updated")
     public UserResponse updateProfile(String email, UpdateProfileRequest request) {
         log.info("Updating profile for email: {}", email);
 
@@ -113,6 +116,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.UPDATE_USER, entityName = "User", description = "User password changed")
     public void changePassword(String email, ChangePasswordRequest request) {
         log.info("Changing password for email: {}", email);
 
@@ -193,6 +197,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.UPDATE_USER, entityName = "CitizenProfile", description = "Citizen profile updated")
     public CitizenProfileResponse updateCitizenProfile(String email, UpdateCitizenProfileRequest request) {
         log.info("Updating citizen profile for email: {}", email);
 
@@ -220,6 +225,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.UPDATE_ACCOUNT_STATUS, entityName = "User", description = "User account status updated")
     public UserResponse updateUserAccountStatus(Long userId, UpdateAccountStatusRequest request) {
         log.info("Updating account status for user ID: {} to {}", userId, request.getAccountStatus());
 

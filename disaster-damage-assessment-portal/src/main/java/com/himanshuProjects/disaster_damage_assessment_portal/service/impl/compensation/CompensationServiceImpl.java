@@ -18,6 +18,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.enums.PaymentStatu
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
+import com.himanshuProjects.disaster_damage_assessment_portal.aspect.Auditable;
 import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
@@ -75,6 +77,7 @@ public class CompensationServiceImpl implements CompensationService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.CREATE_COMPENSATION, entityName = "Compensation", description = "Compensation created for assessment")
     public CompensationResponse createCompensation(String adminEmail, CreateCompensationRequest request) {
         log.info("Creating compensation for assessment ID: {} by admin: {}", request.getDamageAssessmentId(), adminEmail);
 
@@ -159,6 +162,7 @@ public class CompensationServiceImpl implements CompensationService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.APPROVE_COMPENSATION, entityName = "Compensation", description = "Compensation approved")
     public CompensationResponse approveCompensation(Long id, String adminEmail, ApproveCompensationRequest request) {
         log.info("Approving compensation ID: {} by admin: {}", id, adminEmail);
 
@@ -205,6 +209,7 @@ public class CompensationServiceImpl implements CompensationService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.REJECT_COMPENSATION, entityName = "Compensation", description = "Compensation rejected")
     public CompensationResponse rejectCompensation(Long id, String adminEmail, RejectCompensationRequest request) {
         log.info("Rejecting compensation ID: {} by admin: {}", id, adminEmail);
 

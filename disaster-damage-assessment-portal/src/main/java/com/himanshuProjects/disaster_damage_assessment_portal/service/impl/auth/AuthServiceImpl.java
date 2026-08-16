@@ -6,6 +6,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.dto.auth.RegisterR
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.District;
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.AccountStatus;
+import com.himanshuProjects.disaster_damage_assessment_portal.aspect.Auditable;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
@@ -59,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.REGISTER, entityName = "User", description = "New citizen registration")
     public AuthResponse register(RegisterRequest request) {
         log.info("Registration attempt for email: {}", request.getEmail());
 
@@ -98,6 +101,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Auditable(action = AuditAction.LOGIN, entityName = "User", description = "User login")
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
 

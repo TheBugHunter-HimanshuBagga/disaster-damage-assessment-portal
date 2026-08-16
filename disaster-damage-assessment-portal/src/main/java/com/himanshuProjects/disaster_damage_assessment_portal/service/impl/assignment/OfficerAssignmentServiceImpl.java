@@ -11,6 +11,8 @@ import com.himanshuProjects.disaster_damage_assessment_portal.enums.AssignmentSt
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.ReportStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.RoleType;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.NotificationType;
+import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
+import com.himanshuProjects.disaster_damage_assessment_portal.aspect.Auditable;
 import com.himanshuProjects.disaster_damage_assessment_portal.event.NotificationEvent;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.BadRequestException;
 import com.himanshuProjects.disaster_damage_assessment_portal.exception.ConflictException;
@@ -64,6 +66,7 @@ public class OfficerAssignmentServiceImpl implements OfficerAssignmentService {
 
     @Override
     @Transactional
+    @Auditable(action = AuditAction.ASSIGN_OFFICER, entityName = "OfficerAssignment", description = "Officer assigned to disaster report")
     public OfficerAssignmentResponse assignOfficer(Long reportId, AssignOfficerRequest request) {
         log.info("Assigning officer ID: {} to report ID: {}", request.getFieldOfficerId(), reportId);
 
