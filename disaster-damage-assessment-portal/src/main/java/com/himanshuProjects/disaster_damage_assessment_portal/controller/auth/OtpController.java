@@ -4,7 +4,6 @@ import com.himanshuProjects.disaster_damage_assessment_portal.dto.auth.OtpReques
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.auth.OtpResponse;
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.auth.OtpVerifyRequest;
 import com.himanshuProjects.disaster_damage_assessment_portal.entity.user.User;
-import com.himanshuProjects.disaster_damage_assessment_portal.exception.ResourceNotFoundException;
 import com.himanshuProjects.disaster_damage_assessment_portal.repository.user.UserRepository;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.OtpService;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.auth.AuthService;
@@ -39,33 +38,16 @@ public class OtpController {
     public ResponseEntity<OtpResponse> resendOtp(@Valid @RequestBody OtpRequest request) {
         log.info("Resend OTP request for email: {}", request.getEmail());
 
-        try {
-            // Fetch user's full name for the email greeting
-            String fullName = userRepository.findByEmail(request.getEmail())
-                    .map(User::getFullName)
-                    .orElse("User");
+        String fullName = userRepository.findByEmail(request.getEmail())
+                .map(User::getFullName)
+                .orElse("User");
 
-            otpService.resendOtp(request.getEmail(), fullName);
-            return ResponseEntity.ok(OtpResponse.builder()
-                    .success(true)
-                    .message("OTP resent successfully. Please check your email.")
-                    .email(request.getEmail())
-                    .build());
-        } catch (IllegalStateException e) {
-            log.warn("Resend OTP failed for email: {} - {}", request.getEmail(), e.getMessage());
-            return ResponseEntity.badRequest().body(OtpResponse.builder()
-                    .success(false)
-                    .message(e.getMessage())
-                    .email(request.getEmail())
-                    .build());
-        } catch (Exception e) {
-            log.error("Error resending OTP for email: {}", request.getEmail(), e);
-            return ResponseEntity.internalServerError().body(OtpResponse.builder()
-                    .success(false)
-                    .message("Failed to resend OTP. Please try again later.")
-                    .email(request.getEmail())
-                    .build());
-        }
+        otpService.resendOtp(request.getEmail(), fullName);
+        return ResponseEntity.ok(OtpResponse.builder()
+                .success(true)
+                .message("OTP resent successfully. Please check your email.")
+                .email(request.getEmail())
+                .build());
     }
 
     @PostMapping("/verify-otp")
@@ -75,7 +57,6 @@ public class OtpController {
         boolean isValid = otpService.verifyOtp(request.getEmail(), request.getOtp());
 
         if (isValid) {
-            // Activate the user's account
             authService.activateAccount(request.getEmail());
             return ResponseEntity.ok(OtpResponse.builder()
                     .success(true)
