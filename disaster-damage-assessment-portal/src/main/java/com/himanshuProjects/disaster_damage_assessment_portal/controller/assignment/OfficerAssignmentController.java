@@ -6,6 +6,10 @@ import com.himanshuProjects.disaster_damage_assessment_portal.dto.assignment.Off
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.assignment.UpdateAssignmentStatusRequest;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.AssignmentStatus;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.assignment.OfficerAssignmentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/assignments")
+@Tag(name = "Officer Assignments", description = "Field officer assignment to disaster reports")
 public class OfficerAssignmentController {
 
     private final OfficerAssignmentService assignmentService;
@@ -30,6 +35,12 @@ public class OfficerAssignmentController {
     }
 
     @PostMapping("/report/{reportId}")
+    @Operation(summary = "Assign officer to report", description = "Admin assigns a field officer to a disaster report. Status set to PENDING.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Officer assigned"),
+            @ApiResponse(responseCode = "400", description = "Validation error or officer already assigned"),
+            @ApiResponse(responseCode = "404", description = "Report not found")
+    })
     public ResponseEntity<OfficerAssignmentResponse> assignOfficer(
             @PathVariable Long reportId,
             @Valid @RequestBody AssignOfficerRequest request) {
@@ -38,12 +49,22 @@ public class OfficerAssignmentController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get assignment by ID", description = "Returns a specific officer assignment with details.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assignment found"),
+            @ApiResponse(responseCode = "404", description = "Assignment not found")
+    })
     public ResponseEntity<OfficerAssignmentResponse> getAssignmentById(@PathVariable Long id) {
         OfficerAssignmentResponse response = assignmentService.getAssignmentById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/report/{reportId}")
+    @Operation(summary = "Get assignment by report ID", description = "Returns the officer assignment for a specific disaster report.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assignment found"),
+            @ApiResponse(responseCode = "404", description = "Assignment not found for this report")
+    })
     public ResponseEntity<OfficerAssignmentResponse> getAssignmentByReportId(
             @PathVariable Long reportId) {
         OfficerAssignmentResponse response = assignmentService.getAssignmentByReportId(reportId);
@@ -51,6 +72,12 @@ public class OfficerAssignmentController {
     }
 
     @PatchMapping("/{id}/status")
+    @Operation(summary = "Update assignment status", description = "Field officer updates assignment status (ACCEPTED, IN_PROGRESS, COMPLETED).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Status updated"),
+            @ApiResponse(responseCode = "403", description = "Not the assigned officer"),
+            @ApiResponse(responseCode = "404", description = "Assignment not found")
+    })
     public ResponseEntity<OfficerAssignmentResponse> updateAssignmentStatus(
             Authentication authentication,
             @PathVariable Long id,
@@ -62,6 +89,11 @@ public class OfficerAssignmentController {
     }
 
     @GetMapping
+    @Operation(summary = "Search assignments", description = "Search and filter assignments by status, officer. Supports pagination.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Search results returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid parameters")
+    })
     public ResponseEntity<AssignmentPageResponse> searchAssignments(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) AssignmentStatus status,
@@ -77,6 +109,11 @@ public class OfficerAssignmentController {
     }
 
     @GetMapping("/my")
+    @Operation(summary = "Get my assignments", description = "Returns all assignments for the authenticated field officer.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assignments returned"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     public ResponseEntity<AssignmentPageResponse> getMyAssignments(
             Authentication authentication,
             @RequestParam(required = false) AssignmentStatus status,
@@ -91,6 +128,12 @@ public class OfficerAssignmentController {
     }
 
     @PostMapping("/{id}/reassign")
+    @Operation(summary = "Reassign officer", description = "Admin reassigns a different officer to an existing assignment.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Officer reassigned"),
+            @ApiResponse(responseCode = "400", description = "Validation error"),
+            @ApiResponse(responseCode = "404", description = "Assignment not found")
+    })
     public ResponseEntity<OfficerAssignmentResponse> reassignOfficer(
             @PathVariable Long id,
             @Valid @RequestBody AssignOfficerRequest request) {

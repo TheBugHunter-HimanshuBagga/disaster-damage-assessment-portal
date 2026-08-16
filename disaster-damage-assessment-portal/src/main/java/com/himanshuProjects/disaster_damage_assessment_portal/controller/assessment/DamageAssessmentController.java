@@ -7,6 +7,10 @@ import com.himanshuProjects.disaster_damage_assessment_portal.dto.assessment.Dam
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.assessment.UpdateDamageAssessmentRequest;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.DamageLevel;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.assessment.DamageAssessmentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/assessments")
+@Tag(name = "Damage Assessments", description = "Field officer damage assessment management")
 public class DamageAssessmentController {
 
     private final DamageAssessmentService assessmentService;
@@ -33,6 +38,12 @@ public class DamageAssessmentController {
     }
 
     @PostMapping("/report/{reportId}")
+    @Operation(summary = "Submit damage assessment", description = "Field officer submits a damage assessment for a disaster report. Updates report status to ASSESSED.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Assessment created"),
+            @ApiResponse(responseCode = "400", description = "Validation error"),
+            @ApiResponse(responseCode = "404", description = "Report not found")
+    })
     public ResponseEntity<DamageAssessmentResponse> submitAssessment(
             Authentication authentication,
             @PathVariable Long reportId,
@@ -44,12 +55,22 @@ public class DamageAssessmentController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get assessment by ID", description = "Returns a specific damage assessment with all details.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assessment found"),
+            @ApiResponse(responseCode = "404", description = "Assessment not found")
+    })
     public ResponseEntity<DamageAssessmentResponse> getAssessmentById(@PathVariable Long id) {
         DamageAssessmentResponse response = assessmentService.getAssessmentById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/report/{reportId}")
+    @Operation(summary = "Get assessment by report ID", description = "Returns the damage assessment associated with a specific report.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assessment found"),
+            @ApiResponse(responseCode = "404", description = "Assessment not found for this report")
+    })
     public ResponseEntity<DamageAssessmentResponse> getAssessmentByReportId(
             @PathVariable Long reportId) {
         DamageAssessmentResponse response = assessmentService.getAssessmentByReportId(reportId);
@@ -57,6 +78,12 @@ public class DamageAssessmentController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update damage assessment", description = "Field officer updates an existing assessment. Only the assigned officer can update.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assessment updated"),
+            @ApiResponse(responseCode = "403", description = "Not the assigned officer"),
+            @ApiResponse(responseCode = "404", description = "Assessment not found")
+    })
     public ResponseEntity<DamageAssessmentResponse> updateAssessment(
             Authentication authentication,
             @PathVariable Long id,
@@ -68,6 +95,11 @@ public class DamageAssessmentController {
     }
 
     @GetMapping
+    @Operation(summary = "Search damage assessments", description = "Search and filter assessments by damage level, officer. Supports pagination.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Search results returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid parameters")
+    })
     public ResponseEntity<DamageAssessmentPageResponse> searchAssessments(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) DamageLevel damageLevel,
@@ -83,6 +115,11 @@ public class DamageAssessmentController {
     }
 
     @GetMapping("/my")
+    @Operation(summary = "Get my assessments", description = "Returns all assessments submitted by the authenticated field officer.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assessments returned"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     public ResponseEntity<DamageAssessmentPageResponse> getMyAssessments(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
@@ -96,6 +133,12 @@ public class DamageAssessmentController {
     }
 
     @PostMapping("/{id}/images")
+    @Operation(summary = "Add inspection images", description = "Adds inspection photo URLs to an existing assessment.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Images added"),
+            @ApiResponse(responseCode = "403", description = "Not the assigned officer"),
+            @ApiResponse(responseCode = "404", description = "Assessment not found")
+    })
     public ResponseEntity<DamageAssessmentResponse> addImages(
             Authentication authentication,
             @PathVariable Long id,
@@ -106,6 +149,12 @@ public class DamageAssessmentController {
     }
 
     @DeleteMapping("/{assessmentId}/images/{imageId}")
+    @Operation(summary = "Remove inspection image", description = "Removes a specific image from an assessment.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Image removed"),
+            @ApiResponse(responseCode = "403", description = "Not the assigned officer"),
+            @ApiResponse(responseCode = "404", description = "Assessment or image not found")
+    })
     public ResponseEntity<Void> removeImage(
             Authentication authentication,
             @PathVariable Long assessmentId,
@@ -116,6 +165,12 @@ public class DamageAssessmentController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete assessment", description = "Deletes an assessment. Only the assigned officer can delete.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Assessment deleted"),
+            @ApiResponse(responseCode = "403", description = "Not the assigned officer"),
+            @ApiResponse(responseCode = "404", description = "Assessment not found")
+    })
     public ResponseEntity<Void> deleteAssessment(
             Authentication authentication,
             @PathVariable Long id) {

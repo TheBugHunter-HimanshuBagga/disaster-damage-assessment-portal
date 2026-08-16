@@ -4,6 +4,10 @@ import com.himanshuProjects.disaster_damage_assessment_portal.dto.district.Distr
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.district.DistrictRequest;
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.district.DistrictResponse;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.district.DistrictService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/districts")
+@Tag(name = "Districts", description = "District master data management")
 public class DistrictController {
 
     private final DistrictService districtService;
@@ -30,6 +35,12 @@ public class DistrictController {
     }
 
     @PostMapping
+    @Operation(summary = "Create district", description = "Creates a new district under a state. Admin only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "District created"),
+            @ApiResponse(responseCode = "400", description = "Validation error or state not found"),
+            @ApiResponse(responseCode = "409", description = "District name already exists in this state")
+    })
     public ResponseEntity<DistrictResponse> createDistrict(
             @Valid @RequestBody DistrictRequest request) {
         DistrictResponse response = districtService.createDistrict(request);
@@ -37,12 +48,21 @@ public class DistrictController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get district by ID", description = "Returns a specific district with state info.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "District found"),
+            @ApiResponse(responseCode = "404", description = "District not found")
+    })
     public ResponseEntity<DistrictResponse> getDistrictById(@PathVariable Long id) {
         DistrictResponse response = districtService.getDistrictById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
+    @Operation(summary = "Search districts", description = "Search and filter districts by state. Supports pagination.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Search results returned")
+    })
     public ResponseEntity<DistrictPageResponse> searchDistricts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long stateId,
@@ -57,6 +77,11 @@ public class DistrictController {
     }
 
     @GetMapping("/by-state/{stateId}")
+    @Operation(summary = "Get districts by state", description = "Returns all districts for a specific state.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Districts returned"),
+            @ApiResponse(responseCode = "404", description = "State not found")
+    })
     public ResponseEntity<List<DistrictResponse>> getDistrictsByStateId(
             @PathVariable Long stateId) {
         List<DistrictResponse> response = districtService.getDistrictsByStateId(stateId);
@@ -64,6 +89,13 @@ public class DistrictController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update district", description = "Updates district name. Admin only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "District updated"),
+            @ApiResponse(responseCode = "400", description = "Validation error"),
+            @ApiResponse(responseCode = "404", description = "District not found"),
+            @ApiResponse(responseCode = "409", description = "District name already exists")
+    })
     public ResponseEntity<DistrictResponse> updateDistrict(
             @PathVariable Long id,
             @Valid @RequestBody DistrictRequest request) {
@@ -72,6 +104,12 @@ public class DistrictController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete district", description = "Deletes a district. Fails if users are associated. Admin only.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "District deleted"),
+            @ApiResponse(responseCode = "400", description = "District has associated users"),
+            @ApiResponse(responseCode = "404", description = "District not found")
+    })
     public ResponseEntity<Void> deleteDistrict(@PathVariable Long id) {
         districtService.deleteDistrict(id);
         return ResponseEntity.noContent().build();

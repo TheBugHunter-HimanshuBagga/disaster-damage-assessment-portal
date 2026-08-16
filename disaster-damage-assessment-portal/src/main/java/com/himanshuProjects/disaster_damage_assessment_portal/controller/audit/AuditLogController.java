@@ -4,6 +4,10 @@ import com.himanshuProjects.disaster_damage_assessment_portal.dto.audit.AuditLog
 import com.himanshuProjects.disaster_damage_assessment_portal.dto.audit.AuditLogResponse;
 import com.himanshuProjects.disaster_damage_assessment_portal.enums.AuditAction;
 import com.himanshuProjects.disaster_damage_assessment_portal.service.audit.AuditLogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/audit-logs")
+@Tag(name = "Audit Logs", description = "System audit trail for all actions")
 public class AuditLogController {
 
     private final AuditLogService auditLogService;
@@ -25,6 +30,11 @@ public class AuditLogController {
     }
 
     @GetMapping
+    @Operation(summary = "Search audit logs", description = "Search and filter audit logs by action, entity, user. Admin only. Supports pagination.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Search results returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid sort field")
+    })
     public ResponseEntity<AuditLogPageResponse> searchAuditLogs(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) AuditAction action,
@@ -41,6 +51,11 @@ public class AuditLogController {
     }
 
     @GetMapping("/entity/{entityName}/{entityId}")
+    @Operation(summary = "Get audit logs by entity", description = "Returns all audit log entries for a specific entity (e.g., DisasterReport with ID 5).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Audit logs returned"),
+            @ApiResponse(responseCode = "404", description = "No logs found")
+    })
     public ResponseEntity<List<AuditLogResponse>> getAuditLogsByEntity(
             @PathVariable String entityName,
             @PathVariable Long entityId) {
@@ -49,6 +64,11 @@ public class AuditLogController {
     }
 
     @GetMapping("/my")
+    @Operation(summary = "Get my audit logs", description = "Returns all actions performed by the authenticated user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Audit logs returned"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
     public ResponseEntity<List<AuditLogResponse>> getMyAuditLogs(Authentication authentication) {
         String email = authentication.getName();
         List<AuditLogResponse> response = auditLogService.getMyAuditLogs(email);
