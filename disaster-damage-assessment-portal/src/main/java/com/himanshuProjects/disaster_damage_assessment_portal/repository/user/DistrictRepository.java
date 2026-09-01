@@ -18,7 +18,7 @@ public interface DistrictRepository extends JpaRepository<District, Long> {
 
     boolean existsByNameIgnoreCaseAndStateIdAndIdNot(String name, Long stateId, Long id);
 
-    List<District> findByStateIdOrderByAsc(Long stateId);
+    List<District> findByStateIdOrderByIdAsc(Long stateId);
 
     Optional<District> findByNameIgnoreCaseAndStateId(String name, Long stateId);
 

@@ -146,7 +146,7 @@ public class StateServiceImpl implements StateService {
         State state = stateRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("State", "id", id));
 
-        List<District> districts = districtRepository.findByStateIdOrderByAsc(id);
+        List<District> districts = districtRepository.findByStateIdOrderByIdAsc(id);
         if (!districts.isEmpty()) {
             throw new BadRequestException(
                     "Cannot delete state '" + state.getName()
@@ -159,7 +159,7 @@ public class StateServiceImpl implements StateService {
     }
 
     private StateResponse mapToResponse(State state) {
-        List<District> districts = districtRepository.findByStateIdOrderByAsc(state.getId());
+        List<District> districts = districtRepository.findByStateIdOrderByIdAsc(state.getId());
         return StateResponse.builder()
                 .id(state.getId())
                 .name(state.getName())

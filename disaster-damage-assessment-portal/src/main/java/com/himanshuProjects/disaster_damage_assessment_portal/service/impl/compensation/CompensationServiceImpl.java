@@ -109,7 +109,8 @@ public class CompensationServiceImpl implements CompensationService {
 
         Compensation saved = compensationRepository.save(compensation);
 
-        logStatusChange(null, CompensationStatus.PENDING, "Compensation created with PENDING status", admin, saved);
+        logStatusChange(CompensationStatus.PENDING, CompensationStatus.PENDING,
+                "Compensation created with PENDING status", admin, saved);
 
         report.setStatus(ReportStatus.APPROVED);
         reportRepository.save(report);

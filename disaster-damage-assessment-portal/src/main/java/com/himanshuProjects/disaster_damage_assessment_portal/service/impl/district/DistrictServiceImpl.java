@@ -116,7 +116,7 @@ public class DistrictServiceImpl implements DistrictService {
             throw new ResourceNotFoundException("State", "id", stateId);
         }
 
-        return districtRepository.findByStateIdOrderByAsc(stateId).stream()
+        return districtRepository.findByStateIdOrderByIdAsc(stateId).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
