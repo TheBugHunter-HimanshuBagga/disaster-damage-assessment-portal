@@ -523,7 +523,7 @@ class OfficerAssignmentServiceImplTest {
                 .thenReturn(page);
 
         AssignmentPageResponse response = assignmentService.getMyAssignments(
-                officer.getEmail(), AssignmentStatus.ASSIGNED, 0, 10, "id", "asc");
+                officer.getEmail(), null, AssignmentStatus.ASSIGNED, 0, 10, "id", "asc");
 
         assertThat(response.getAssignments()).hasSize(1);
         assertThat(response.getAssignments().get(0).getOfficerId()).isEqualTo(2L);
@@ -546,7 +546,7 @@ class OfficerAssignmentServiceImplTest {
                 .thenReturn(page);
 
         AssignmentPageResponse response = assignmentService.getMyAssignments(
-                officer.getEmail(), null, 0, 10, "id", "asc");
+                officer.getEmail(), null, null, 0, 10, "id", "asc");
 
         assertThat(response.getAssignments()).hasSize(1);
     }
@@ -557,7 +557,7 @@ class OfficerAssignmentServiceImplTest {
         when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> assignmentService.getMyAssignments(
-                "missing@example.com", AssignmentStatus.ASSIGNED, 0, 10, "id", "asc"))
+                "missing@example.com", null, AssignmentStatus.ASSIGNED, 0, 10, "id", "asc"))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -568,7 +568,7 @@ class OfficerAssignmentServiceImplTest {
         when(userRepository.findByEmail(officer.getEmail())).thenReturn(Optional.of(officer));
 
         assertThatThrownBy(() -> assignmentService.getMyAssignments(
-                officer.getEmail(), AssignmentStatus.ASSIGNED, 0, 10, "bogus", "asc"))
+                officer.getEmail(), null, AssignmentStatus.ASSIGNED, 0, 10, "bogus", "asc"))
                 .isInstanceOf(BadRequestException.class);
 
         verify(assignmentRepository, never()).searchAssignments(

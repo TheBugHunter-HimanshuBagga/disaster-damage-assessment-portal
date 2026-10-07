@@ -1,6 +1,5 @@
 package com.himanshuProjects.disaster_damage_assessment_portal.service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +38,9 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("OTP email sent successfully to: {}", toEmail);
 
-        } catch (MessagingException e) {
+        } catch (Exception e) {
+            // Mail transport problems must never break registration / verification flows.
             log.error("Failed to send OTP email to: {}", toEmail, e);
-            throw new RuntimeException("Failed to send OTP email", e);
         }
     }
 
@@ -61,9 +60,9 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Welcome email sent successfully to: {}", toEmail);
 
-        } catch (MessagingException e) {
+        } catch (Exception e) {
+            // Mail transport problems must never break account activation.
             log.error("Failed to send welcome email to: {}", toEmail, e);
-            throw new RuntimeException("Failed to send welcome email", e);
         }
     }
 

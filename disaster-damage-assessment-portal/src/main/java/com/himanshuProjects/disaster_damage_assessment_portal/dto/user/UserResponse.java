@@ -25,6 +25,7 @@ public class UserResponse {
     private Gender gender;
     private RoleType role;
     private AccountStatus accountStatus;
+    private Long districtId;
     private String districtName;
     private String stateName;
     private LocalDateTime createdAt;

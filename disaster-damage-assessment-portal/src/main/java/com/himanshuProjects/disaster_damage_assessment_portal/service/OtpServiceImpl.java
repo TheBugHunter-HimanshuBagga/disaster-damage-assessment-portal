@@ -42,9 +42,16 @@ public class OtpServiceImpl implements OtpService {
         otpStore.put(email.toLowerCase(), otpData);
 
         // Send OTP via email
-        emailService.sendOtpEmail(email, otp, fullName);
+        try {
+            emailService.sendOtpEmail(email, otp, fullName);
+            log.info("OTP generated and sent for email: {}", email);
+        } catch (Exception ex) {
+            log.warn("OTP email delivery failed for {}: {}", email, ex.getMessage());
+        }
 
-        log.info("OTP generated and sent for email: {}", email);
+        // Always surface the code in the console so local/dev environments without a
+        // configured SMTP account can still complete email verification.
+        log.warn("OTP for {}: {}", email, otp);
     }
 
     @Override

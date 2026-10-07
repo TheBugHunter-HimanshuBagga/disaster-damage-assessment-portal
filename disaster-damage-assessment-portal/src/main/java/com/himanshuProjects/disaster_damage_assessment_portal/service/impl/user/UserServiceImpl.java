@@ -189,8 +189,15 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
-        CitizenProfile profile = citizenProfileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("CitizenProfile", "userId", user.getId()));
+        CitizenProfile profile = citizenProfileRepository.findByUserId(user.getId()).orElse(null);
+
+        if (profile == null) {
+            log.info("No citizen profile yet for user: {}. Returning empty profile.", email);
+            return CitizenProfileResponse.builder()
+                    .userFullName(user.getFullName())
+                    .userEmail(user.getEmail())
+                    .build();
+        }
 
         return mapToCitizenProfileResponse(profile);
     }
@@ -242,6 +249,7 @@ public class UserServiceImpl implements UserService {
     private UserResponse mapToResponse(User user) {
         UserResponse response = modelMapper.map(user, UserResponse.class);
         if (user.getDistrict() != null) {
+            response.setDistrictId(user.getDistrict().getId());
             response.setDistrictName(user.getDistrict().getName());
             if (user.getDistrict().getState() != null) {
                 response.setStateName(user.getDistrict().getState().getName());

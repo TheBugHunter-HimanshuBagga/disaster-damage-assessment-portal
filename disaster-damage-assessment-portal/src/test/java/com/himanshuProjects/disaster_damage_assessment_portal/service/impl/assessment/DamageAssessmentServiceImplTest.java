@@ -534,7 +534,7 @@ class DamageAssessmentServiceImplTest {
         stubDefaultImages();
 
         DamageAssessmentPageResponse response = damageAssessmentService.getMyAssessments(
-                "officer@example.com", 0, 10, "createdAt", "asc");
+                "officer@example.com", null, null, 0, 10, "createdAt", "asc");
 
         assertThat(response).isNotNull();
         assertThat(response.getAssessments()).hasSize(1);
@@ -547,7 +547,7 @@ class DamageAssessmentServiceImplTest {
         when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> damageAssessmentService.getMyAssessments(
-                "missing@example.com", 0, 10, "createdAt", "asc"))
+                "missing@example.com", null, null, 0, 10, "createdAt", "asc"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User");
     }
@@ -559,7 +559,7 @@ class DamageAssessmentServiceImplTest {
         when(userRepository.findByEmail("officer@example.com")).thenReturn(Optional.of(officer));
 
         assertThatThrownBy(() -> damageAssessmentService.getMyAssessments(
-                "officer@example.com", 0, 10, "invalidField", "asc"))
+                "officer@example.com", null, null, 0, 10, "invalidField", "asc"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Invalid sort field");
     }

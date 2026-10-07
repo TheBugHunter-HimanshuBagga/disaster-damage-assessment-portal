@@ -160,13 +160,16 @@ public class CompensationController {
     })
     public ResponseEntity<CompensationPageResponse> getMyCompensations(
             Authentication authentication,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) CompensationStatus status,
+            @RequestParam(required = false) PaymentStatus paymentStatus,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
         String email = authentication.getName();
         CompensationPageResponse response = compensationService.getMyCompensations(
-                email, page, size, sortBy, sortDirection);
+                email, search, status, paymentStatus, page, size, sortBy, sortDirection);
         return ResponseEntity.ok(response);
     }
 

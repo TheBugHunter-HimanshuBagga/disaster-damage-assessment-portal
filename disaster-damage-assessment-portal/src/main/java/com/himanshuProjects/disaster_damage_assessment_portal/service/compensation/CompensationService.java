@@ -31,7 +31,10 @@ public interface CompensationService {
                                                   PaymentStatus paymentStatus, int page, int size,
                                                   String sortBy, String sortDirection);
 
-    CompensationPageResponse getMyCompensations(String citizenEmail, int page, int size,
+    CompensationPageResponse getMyCompensations(String citizenEmail, String search,
+                                                 CompensationStatus status,
+                                                 PaymentStatus paymentStatus,
+                                                 int page, int size,
                                                  String sortBy, String sortDirection);
 
     List<CompensationHistoryResponse> getCompensationHistory(Long compensationId);

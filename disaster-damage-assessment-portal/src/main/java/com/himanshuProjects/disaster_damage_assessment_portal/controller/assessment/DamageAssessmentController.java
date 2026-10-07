@@ -122,13 +122,15 @@ public class DamageAssessmentController {
     })
     public ResponseEntity<DamageAssessmentPageResponse> getMyAssessments(
             Authentication authentication,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) DamageLevel damageLevel,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "assessedAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
         String email = authentication.getName();
         DamageAssessmentPageResponse response = assessmentService.getMyAssessments(
-                email, page, size, sortBy, sortDirection);
+                email, search, damageLevel, page, size, sortBy, sortDirection);
         return ResponseEntity.ok(response);
     }
 

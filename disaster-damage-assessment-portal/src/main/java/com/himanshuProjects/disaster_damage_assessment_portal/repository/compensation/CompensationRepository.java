@@ -39,10 +39,15 @@ public interface CompensationRepository extends JpaRepository<Compensation, Long
             "AND c.compensationStatus = com.himanshuProjects.disaster_damage_assessment_portal.enums.CompensationStatus.APPROVED")
     BigDecimal sumAmountByCitizenId(@Param("citizenId") Long citizenId);
 
-    @Query("SELECT c FROM Compensation c WHERE " +
-            "(:search IS NULL OR LOWER(c.damageAssessment.disasterReport.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(c.approvedAt.fullName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(c.damageAssessment.disasterReport.citizen.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+    // approvedAt / paidBy are nullable - an implicit (inner) join would hide every
+    // not-yet-approved compensation, so join them explicitly with LEFT JOIN.
+    @Query("SELECT c FROM Compensation c " +
+            "LEFT JOIN c.approvedAt a " +
+            "LEFT JOIN c.paidBy p " +
+            "WHERE (:search IS NULL OR LOWER(c.damageAssessment.disasterReport.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(c.damageAssessment.disasterReport.citizen.fullName) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(a.fullName) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
             "AND (:status IS NULL OR c.compensationStatus = :status) " +
             "AND (:paymentStatus IS NULL OR c.paymentStatus = :paymentStatus)")
     Page<Compensation> searchCompensations(
@@ -55,6 +60,20 @@ public interface CompensationRepository extends JpaRepository<Compensation, Long
     @Query("SELECT c FROM Compensation c WHERE " +
             "c.damageAssessment.disasterReport.citizen.id = :citizenId")
     Page<Compensation> findByCitizenId(
+            @Param("citizenId") Long citizenId,
+            Pageable pageable
+    );
+
+    @Query("SELECT c FROM Compensation c WHERE " +
+            "c.damageAssessment.disasterReport.citizen.id = :citizenId " +
+            "AND (:search IS NULL OR LOWER(c.damageAssessment.disasterReport.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(c.damageAssessment.disasterReport.citizen.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND (:status IS NULL OR c.compensationStatus = :status) " +
+            "AND (:paymentStatus IS NULL OR c.paymentStatus = :paymentStatus)")
+    Page<Compensation> searchCompensationsByCitizenId(
+            @Param("search") String search,
+            @Param("status") CompensationStatus status,
+            @Param("paymentStatus") PaymentStatus paymentStatus,
             @Param("citizenId") Long citizenId,
             Pageable pageable
     );

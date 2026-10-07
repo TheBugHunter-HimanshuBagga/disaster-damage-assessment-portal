@@ -337,7 +337,10 @@ public class CompensationServiceImpl implements CompensationService {
 
     @Override
     @Transactional(readOnly = true)
-    public CompensationPageResponse getMyCompensations(String citizenEmail, int page, int size,
+    public CompensationPageResponse getMyCompensations(String citizenEmail, String search,
+                                                        CompensationStatus status,
+                                                        PaymentStatus paymentStatus,
+                                                        int page, int size,
                                                         String sortBy, String sortDirection) {
         log.info("Fetching compensations for citizen: {}", citizenEmail);
 
@@ -354,7 +357,9 @@ public class CompensationServiceImpl implements CompensationService {
                 : Sort.by(sortBy).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Compensation> pageResult = compensationRepository.findByCitizenId(citizen.getId(), pageable);
+        Page<Compensation> pageResult = compensationRepository.searchCompensationsByCitizenId(
+                (search == null || search.isBlank()) ? null : search.trim(),
+                status, paymentStatus, citizen.getId(), pageable);
 
         List<CompensationResponse> compensations = pageResult.getContent().stream()
                 .map(this::mapToResponse)

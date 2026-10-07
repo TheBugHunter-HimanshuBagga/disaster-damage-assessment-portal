@@ -23,7 +23,9 @@ public interface DamageAssessmentService {
                                                     Long officerId, int page, int size,
                                                     String sortBy, String sortDirection);
 
-    DamageAssessmentPageResponse getMyAssessments(String officerEmail, int page, int size,
+    DamageAssessmentPageResponse getMyAssessments(String officerEmail, String search,
+                                                    DamageLevel damageLevel,
+                                                    int page, int size,
                                                     String sortBy, String sortDirection);
 
     DamageAssessmentResponse addImages(Long assessmentId, String officerEmail,

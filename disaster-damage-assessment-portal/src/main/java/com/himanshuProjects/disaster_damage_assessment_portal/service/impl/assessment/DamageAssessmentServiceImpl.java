@@ -248,7 +248,9 @@ public class DamageAssessmentServiceImpl implements DamageAssessmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public DamageAssessmentPageResponse getMyAssessments(String officerEmail, int page, int size,
+    public DamageAssessmentPageResponse getMyAssessments(String officerEmail, String search,
+                                                          DamageLevel damageLevel,
+                                                          int page, int size,
                                                           String sortBy, String sortDirection) {
         log.info("Fetching assessments for officer: {}", officerEmail);
 
@@ -266,7 +268,8 @@ public class DamageAssessmentServiceImpl implements DamageAssessmentService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<DamageAssessment> pageResult = assessmentRepository.searchAssessments(
-                null, null, officer.getId(), pageable);
+                (search == null || search.isBlank()) ? null : search.trim(),
+                damageLevel, officer.getId(), pageable);
 
         List<DamageAssessmentResponse> assessments = pageResult.getContent().stream()
                 .map(this::mapToResponse)

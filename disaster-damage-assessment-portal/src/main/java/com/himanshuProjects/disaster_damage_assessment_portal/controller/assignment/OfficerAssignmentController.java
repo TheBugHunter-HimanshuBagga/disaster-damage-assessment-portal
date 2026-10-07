@@ -116,6 +116,7 @@ public class OfficerAssignmentController {
     })
     public ResponseEntity<AssignmentPageResponse> getMyAssignments(
             Authentication authentication,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) AssignmentStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -123,7 +124,7 @@ public class OfficerAssignmentController {
             @RequestParam(defaultValue = "desc") String sortDirection) {
         String email = authentication.getName();
         AssignmentPageResponse response = assignmentService.getMyAssignments(
-                email, status, page, size, sortBy, sortDirection);
+                email, search, status, page, size, sortBy, sortDirection);
         return ResponseEntity.ok(response);
     }
 

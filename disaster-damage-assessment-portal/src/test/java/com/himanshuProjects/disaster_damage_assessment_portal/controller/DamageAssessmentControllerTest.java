@@ -168,8 +168,8 @@ class DamageAssessmentControllerTest {
     @Test
     @DisplayName("should get my assessments")
     void shouldGetMyAssessments() throws Exception {
-        when(assessmentService.getMyAssessments(eq("officer@example.com"), anyInt(), anyInt(),
-                anyString(), anyString())).thenReturn(assessmentPage());
+        when(assessmentService.getMyAssessments(eq("officer@example.com"), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString())).thenReturn(assessmentPage());
 
         mockMvc.perform(get("/api/assessments/my")
                         .with(authenticatedOfficer("officer@example.com")))

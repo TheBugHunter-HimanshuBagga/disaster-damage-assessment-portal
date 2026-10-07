@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -91,7 +92,9 @@ class OfficerAssignmentControllerTest {
         when(assignmentService.assignOfficer(eq(3L), any(AssignOfficerRequest.class)))
                 .thenReturn(assignmentResponse());
 
-        String body = "{\"fieldOfficerId\":2,\"inspectionDate\":\"2026-09-02T10:30:00\",\"notes\":\"Inspect\"}";
+        String inspectionDate = LocalDateTime.now().plusDays(1).withNano(0).toString();
+        String body = "{\"fieldOfficerId\":2,\"inspectionDate\":\"" + inspectionDate
+                + "\",\"notes\":\"Inspect\"}";
 
         mockMvc.perform(post("/api/assignments/report/3")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -162,7 +165,8 @@ class OfficerAssignmentControllerTest {
     @Test
     @DisplayName("should get my assignments")
     void shouldGetMyAssignments() throws Exception {
-        when(assignmentService.getMyAssignments(eq("officer@example.com"), eq(AssignmentStatus.ASSIGNED),
+        when(assignmentService.getMyAssignments(eq("officer@example.com"), any(),
+                eq(AssignmentStatus.ASSIGNED),
                 anyInt(), anyInt(), anyString(), anyString())).thenReturn(assignmentPage());
 
         mockMvc.perform(get("/api/assignments/my")
@@ -178,7 +182,9 @@ class OfficerAssignmentControllerTest {
         when(assignmentService.reassignOfficer(eq(1L), any(AssignOfficerRequest.class)))
                 .thenReturn(assignmentResponse());
 
-        String body = "{\"fieldOfficerId\":4,\"inspectionDate\":\"2026-09-03T10:30:00\",\"notes\":\"Reassigned\"}";
+        String inspectionDate = LocalDateTime.now().plusDays(2).withNano(0).toString();
+        String body = "{\"fieldOfficerId\":4,\"inspectionDate\":\"" + inspectionDate
+                + "\",\"notes\":\"Reassigned\"}";
 
         mockMvc.perform(post("/api/assignments/1/reassign")
                         .contentType(MediaType.APPLICATION_JSON)

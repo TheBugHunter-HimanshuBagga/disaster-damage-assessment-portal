@@ -21,7 +21,8 @@ public interface OfficerAssignmentService {
                                               Long officerId, int page, int size,
                                               String sortBy, String sortDirection);
 
-    AssignmentPageResponse getMyAssignments(String officerEmail, AssignmentStatus status,
+    AssignmentPageResponse getMyAssignments(String officerEmail, String search,
+                                             AssignmentStatus status,
                                              int page, int size,
                                              String sortBy, String sortDirection);
 

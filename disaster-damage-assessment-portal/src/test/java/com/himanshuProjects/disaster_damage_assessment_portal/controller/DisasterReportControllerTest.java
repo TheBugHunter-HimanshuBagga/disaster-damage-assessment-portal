@@ -196,16 +196,31 @@ class DisasterReportControllerTest {
     }
 
     @Test
-    @DisplayName("should return 500 when adding images due to invalid @NotBlank on List (production bug)")
-    void shouldFailAddingImagesDueToInvalidNotBlank() throws Exception {
+    @DisplayName("should add images when the image list is not empty")
+    void shouldAddImagesWhenListIsNotEmpty() throws Exception {
+        when(reportService.addImages(eq(1L), eq("citizen@example.com"), any(AddReportImagesRequest.class)))
+                .thenReturn(reportResponse());
+
         String body = "{\"imageUrls\":[\"http://example.com/img1.jpg\"]}";
 
         mockMvc.perform(post("/api/reports/1/images")
                         .with(authenticatedCitizen("citizen@example.com"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().is5xxServerError())
-                .andExpect(jsonPath("$.errorCode").value("INTERNAL_ERROR"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reportId").value(1));
+    }
+
+    @Test
+    @DisplayName("should return 400 when adding an empty image list")
+    void shouldReturn400ForEmptyImageList() throws Exception {
+        String body = "{\"imageUrls\":[]}";
+
+        mockMvc.perform(post("/api/reports/1/images")
+                        .with(authenticatedCitizen("citizen@example.com"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

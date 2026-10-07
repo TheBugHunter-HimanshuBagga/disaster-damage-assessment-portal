@@ -679,12 +679,12 @@ class CompensationServiceImplTest {
                 PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").ascending()), 1);
 
         when(userRepository.findByEmail("citizen@example.com")).thenReturn(Optional.of(citizen));
-        when(compensationRepository.findByCitizenId(10L,
+        when(compensationRepository.searchCompensationsByCitizenId(null, null, null, 10L,
                 PageRequest.of(0, 10, org.springframework.data.domain.Sort.by("createdAt").ascending())))
                 .thenReturn(page);
 
         CompensationPageResponse response = compensationService.getMyCompensations(
-                "citizen@example.com", 0, 10, "createdAt", "asc");
+                "citizen@example.com", null, null, null, 0, 10, "createdAt", "asc");
 
         assertThat(response).isNotNull();
         assertThat(response.getCompensations()).hasSize(1);
@@ -697,7 +697,7 @@ class CompensationServiceImplTest {
         when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> compensationService.getMyCompensations(
-                "missing@example.com", 0, 10, "createdAt", "asc"))
+                "missing@example.com", null, null, null, 0, 10, "createdAt", "asc"))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User");
     }
@@ -709,7 +709,7 @@ class CompensationServiceImplTest {
         when(userRepository.findByEmail("citizen@example.com")).thenReturn(Optional.of(citizen));
 
         assertThatThrownBy(() -> compensationService.getMyCompensations(
-                "citizen@example.com", 0, 10, "invalidField", "asc"))
+                "citizen@example.com", null, null, null, 0, 10, "invalidField", "asc"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Invalid sort field");
     }

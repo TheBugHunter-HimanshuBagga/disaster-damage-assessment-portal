@@ -214,7 +214,8 @@ public class OfficerAssignmentServiceImpl implements OfficerAssignmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public AssignmentPageResponse getMyAssignments(String officerEmail, AssignmentStatus status,
+    public AssignmentPageResponse getMyAssignments(String officerEmail, String search,
+                                                    AssignmentStatus status,
                                                     int page, int size,
                                                     String sortBy, String sortDirection) {
         log.info("Fetching assignments for officer: {} with status: {}", officerEmail, status);
@@ -233,14 +234,9 @@ public class OfficerAssignmentServiceImpl implements OfficerAssignmentService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<OfficerAssignment> assignmentPage;
-        if (status != null) {
-            assignmentPage = assignmentRepository.searchAssignments(
-                    null, status, officer.getId(), pageable);
-        } else {
-            assignmentPage = assignmentRepository.searchAssignments(
-                    null, null, officer.getId(), pageable);
-        }
+        Page<OfficerAssignment> assignmentPage = assignmentRepository.searchAssignments(
+                (search == null || search.isBlank()) ? null : search.trim(),
+                status, officer.getId(), pageable);
 
         List<OfficerAssignmentResponse> assignments = assignmentPage.getContent().stream()
                 .map(this::mapToResponse)

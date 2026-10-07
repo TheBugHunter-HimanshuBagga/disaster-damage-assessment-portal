@@ -217,8 +217,8 @@ class CompensationControllerTest {
     @Test
     @DisplayName("should get my compensations")
     void shouldGetMyCompensations() throws Exception {
-        when(compensationService.getMyCompensations(eq("citizen@example.com"), anyInt(), anyInt(),
-                anyString(), anyString())).thenReturn(compensationPage());
+        when(compensationService.getMyCompensations(eq("citizen@example.com"), any(), any(), any(),
+                anyInt(), anyInt(), anyString(), anyString())).thenReturn(compensationPage());
 
         mockMvc.perform(get("/api/compensations/my")
                         .with(authenticatedAdmin("citizen@example.com")))
