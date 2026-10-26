@@ -502,15 +502,19 @@ class UserServiceImplTest {
     }
 
     @Test
-    @DisplayName("shouldThrowResourceNotFoundExceptionWhenCitizenProfileNotFoundForUser")
-    void shouldThrowResourceNotFoundExceptionWhenCitizenProfileNotFoundForUser() {
+    @DisplayName("shouldReturnEmptyProfileWhenCitizenProfileNotFoundForUser")
+    void shouldReturnEmptyProfileWhenCitizenProfileNotFoundForUser() {
         User user = defaultUser();
         when(userRepository.findByEmail("citizen@example.com")).thenReturn(Optional.of(user));
         when(citizenProfileRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getCitizenProfile("citizen@example.com"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("CitizenProfile");
+        CitizenProfileResponse response = userService.getCitizenProfile("citizen@example.com");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isNull();
+        assertThat(response.getAadhaarNumber()).isNull();
+        assertThat(response.getUserFullName()).isEqualTo("Test CITIZEN");
+        assertThat(response.getUserEmail()).isEqualTo("citizen@example.com");
     }
 
     // ==================== updateCitizenProfile ====================
